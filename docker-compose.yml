@@ -1,0 +1,88 @@
+services:
+  vue:
+    build: ./vue
+    ports:
+      - "80:8080"
+
+  flask_api:
+    build: ./flask_api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ~/output:/app/static
+    stop_signal: SIGINT
+
+  websocket:
+    build: ./websocket
+    ports:
+      - "5001:5001"
+
+  stream_transcoder:
+    build: ./stream_transcoder
+    ports:
+      - "3000:8080"
+      - "1935:1935"
+      - "8888:8888"
+      - "8554:8554"
+
+  cv0:
+    build: ./cv
+    environment:
+      - STREAM_URL=rtsp://192.168.168.138:8554/cam
+      - STREAM_NAME=Isengard
+      - STREAM_ID=000000000000000000000000
+    volumes:
+      - ~/output:/output
+    restart: always
+
+  cv1:
+    build: ./cv
+    environment:
+      - STREAM_URL=rtsp://192.168.168.59:8554/cam
+      - STREAM_NAME=Alderaan
+      - STREAM_ID=000000000000000000000001
+    volumes:
+      - ~/output:/output
+    restart: always
+
+  # cv2:
+  #   build: ./cv
+  #   environment:
+  #     - STREAM_URL=rtsp://192.168.168.138:8554/cam
+  #     - STREAM_NAME=Jita IV-Moon 4
+  #     - STREAM_ID=000000000000000000000002
+  #   volumes:
+  #     - ~/output:/output
+  #   restart: always
+
+  # cv3:
+  #   build: ./cv
+  #   environment:
+  #     - STREAM_URL=rtsp://192.168.168.138:8554/cam
+  #     - STREAM_NAME=Runeterra
+  #     - STREAM_ID=000000000000000000000003
+  #   volumes:
+  #     - ~/output:/output
+  #   restart: always
+
+  cv_od:
+    build: ./cv_od
+    volumes:
+      - "~/output:/output"
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+
+  mongo:
+    image: mongo
+    command:
+      - "--logpath"
+      - "/var/log/mongodb/mongod.log"
+
+  mq:
+    build: ./rabbitmq
+    ports:
+      - "15672:15672" # admin console localhost:15672 guest:guest
+    stop_signal: SIGINT

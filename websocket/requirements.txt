@@ -1,0 +1,4 @@
+websockets
+Pika
+eventlet
+pymongo
